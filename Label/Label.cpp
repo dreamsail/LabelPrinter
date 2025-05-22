@@ -173,6 +173,8 @@ private:
     std::vector<std::string> texts;
     LabelLayout hLayout;
     LabelLayout vLayout;
+    bool showBox;
+    int boxLineWidth;
     std::string tsplCommand;
 public:
     LabelText(Json::Value item);
@@ -288,6 +290,18 @@ LabelText::LabelText(Json::Value item) {
     else {
         this->vLayout = LabelLayout::Top;
     }
+    if (item.isMember("showBox")) {
+        this->showBox = item["showBox"].asBool();
+    }
+    else {
+        this->showBox = false;
+    }
+    if (item.isMember("boxLineWidth")) {
+        this->boxLineWidth = item["boxLineWidth"].asInt();
+    }
+    else {
+        this->boxLineWidth = 1;
+    }
 }
 // Í¨¹ý LabelElementBase ¼Ì³Ð
 char* LabelText::GetType() {
@@ -330,6 +344,14 @@ char* LabelText::GetTsplCommand() {
     }
     if (this->vLayout == LabelLayout::Center) {
         yOffset = ((this->y_end - this->y_start) - rowsHeight) / 2;
+    }
+
+    if (this->showBox)
+    {
+        this->tsplCommand = std::format(
+            "BOX {},{},{},{},{}\n",
+            this->x_start, this->y_start, this->x_end, this->y_end, this->boxLineWidth
+        );
     }
 
     for (auto it =this->texts.begin(); it != this->texts.end(); it++)
