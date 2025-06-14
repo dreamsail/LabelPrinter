@@ -177,7 +177,7 @@ void MainWindow::OnCreate(WPARAM wParam, LPARAM lParam)
     this->nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     this->nid.uCallbackMessage = WM_SYSTEM_NOTIFY;
     this->nid.hIcon = LoadIcon(this->hInstance, MAKEINTRESOURCE(IDI_ICON1));
-    lstrcpy(this->nid.szTip, TEXT("梦航云打印组件"));
+    lstrcpy(this->nid.szTip, TEXT("启层云打印组件"));
     Shell_NotifyIcon(NIM_ADD, &this->nid);
 
     //托盘菜单

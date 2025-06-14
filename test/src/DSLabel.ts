@@ -50,31 +50,37 @@ export class LabelText {
     texts: string[];
     hLayout: LabelLayout;
     vLayout: LabelLayout;
+    showBox: Boolean;
+    boxLineWidth:number;
     constructor(
         config: {
             x_start: number,
             y_start: number,
-            x_end: number,
-            y_end: number,
-            font: LabelFont,
+            x_end?: number,
+            y_end?: number,
+            font?: LabelFont,
             texts: string[]
             rotation?: number,
             xMultiplication?: number,
             yMultiplication?: number,
             hLayout?: LabelLayout,
             vLayout?: LabelLayout,
+            showBox?: Boolean,
+            boxLineWidth?:number,
         }) {
         this.x_start = config.x_start;
         this.y_start = config.y_start;
-        this.x_end = config.x_end;
-        this.y_end = config.y_end;
-        this.font = config.font;
+        this.x_end = config.x_end ?? 0;
+        this.y_end = config.y_end ?? 0;
         this.texts = config.texts;
+        this.font = config.font ?? LabelFont.TSS16;
         this.rotation = config.rotation ?? 0;
         this.xMultiplication = config.xMultiplication ?? 1;
         this.yMultiplication = config.yMultiplication ?? 1;
         this.hLayout = config.hLayout ?? LabelLayout.Left;
         this.vLayout = config.vLayout ?? LabelLayout.Top;
+        this.showBox = config.showBox ?? false;
+        this.boxLineWidth = config.boxLineWidth ?? 1;
     }
 }
 export class LabelBox {
