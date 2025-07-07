@@ -52,19 +52,33 @@ void MainWindow::UpdateUsbDeviceMenuList()
 {
     RemoveMenu(this->topRootMenu, (UINT)this->printMenu, MF_BYCOMMAND);
     DestroyMenu(this->printMenu);
-
+	//设备列表更新以后判断先前的选中设备是否还存在
+    BOOL selectDeviceExist = false;
     this->printMenu = CreatePopupMenu();
     for (UINT i = 0; i < this->usbDeviceNum; i++)
     {
         BOOL isChecked = lstrcmp(this->usbDeviceList[i].InstanceId, this->selectUsbDeviceInstanceId) == 0;
-
+		selectDeviceExist = selectDeviceExist || isChecked;
         InsertMenu(this->printMenu, i,
             (isChecked ? MF_CHECKED : 0) | MF_STRING,
             IDC_MENU_PRINT + i, this->usbDeviceList[i].FriendlyName);
-
+		//当前设备是选中的设备，并且设备句柄未打开，发送消息打开设备,实现设备插拔后的自动打开
+        if (isChecked&&!this->openUsbDeviceHandle){   
+            PostMessageW(hwnd, WM_COMMAND, MAKEWPARAM(IDC_MENU_PRINT + i,0),0);
+        }
     }
     AppendMenu(this->topRootMenu, MF_POPUP, (UINT_PTR)this->printMenu, TEXT("打印机"));
-
+	//选择的设备不存在时
+    if (!selectDeviceExist) {
+        //lstrcpy(this->selectUsbDeviceInstanceId, TEXT(""));
+        //未关闭并且已拔出的设备
+        if (this->openUsbDeviceHandle){
+            CloseHandle(this->openUsbDeviceHandle);
+            this->openUsbDeviceHandle = NULL;
+            this->labelPrintThread.SetDeviceHandle(this->openUsbDeviceHandle);
+        }
+       
+    }
     DrawMenuBar(this->GetHwnd());        // 强制重绘菜单栏
 }
 

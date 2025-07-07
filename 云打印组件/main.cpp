@@ -90,7 +90,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     MainWindow* mainWindow = new MainWindow();
     mainWindow->Register(TEXT("MainWindow"), DSUI_MainWindowProc);
-    mainWindow->Create(NULL, TEXT("MainWindow"), TEXT("标签云打印组件 V2.0.0.3"));
+    mainWindow->Create(NULL, TEXT("MainWindow"), TEXT("标签云打印组件 V2.0.0.4"));
     mainWindow->Resize(700, 400);
     mainWindow->SetHIcon(LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1)));
     mainWindow->Show(nCmdShow);

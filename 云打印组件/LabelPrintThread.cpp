@@ -42,6 +42,8 @@ void LabelPrintThread::Run()
 		if (WaitForSingleObject(this->ov.hEvent, 1000) == WAIT_TIMEOUT){
 			//无响应
 			PostMessage(this->hwnd, WM_PRINT_DEVICE_STATE, (LPARAM)0x100, (LPARAM)currentLabel);
+			//释放一会 不能一直占着临界区 会导致无法插入新的内容
+			SleepConditionVariableCS(&this->conditionVariable, &this->criticalSection, 500);
 			continue;
 		}
 		//加入已发送批次列表
