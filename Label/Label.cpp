@@ -6,11 +6,21 @@ std::vector<std::string> wrapText(const std::string& input, int englishWidth, in
     std::vector<std::string> result;
     std::string tmp_string;
     int currentLineWidth = 0;
+    if (rectWidth< englishWidth)
+    {
+
+    }
+
     for (size_t i = 0; i < input.length(); )
     {
 
         if ((unsigned short(input[i])) > 0x7F)
         {
+            //单个中文字符超出范围直接返回空,避免死循环
+            if (chineseWidth> rectWidth){
+                result.clear();
+                return result;
+            }
             //下个字符要超出范围了
             if ((currentLineWidth + chineseWidth) > rectWidth)
             {
@@ -25,6 +35,11 @@ std::vector<std::string> wrapText(const std::string& input, int englishWidth, in
             }
         }
         else {
+            //单个英文字符超出范围直接返回空,避免死循环
+            if (englishWidth > rectWidth) {
+                result.clear();
+                return result;
+            }
             if ((currentLineWidth + englishWidth) > rectWidth)
             {
                 result.push_back(tmp_string);
@@ -37,7 +52,8 @@ std::vector<std::string> wrapText(const std::string& input, int englishWidth, in
                 currentLineWidth += englishWidth;
             }
         }
-    }//如果只有一行那么要在循环外加入
+    }
+    //最后一行，要在循环外加入
     if (tmp_string.length())
     {
         result.push_back(tmp_string);

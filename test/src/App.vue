@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios';
-import { BarCodeType, Label, LabelBarCode, LabelBox, LabelFont, LabelText } from './DSLabel';
+import { BarCodeType, Label, LabelBarCode, LabelBox, LabelFont, LabelLayout, LabelText } from './DSLabel';
 
 var label = new Label("测试标签", 70, 60, 2, 0, 1);
 var box = new LabelBox({
@@ -43,7 +43,11 @@ label.elements.push(text)
 label.elements.push(barCode)
 
 var labels = [label]
-axios.post("http://127.0.0.1:16500/print", JSON.stringify(labels))
+
+
+//axios.post("http://127.0.0.1:16500/print", JSON.stringify(labels))
+
+
 
 </script>
 
