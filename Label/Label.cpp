@@ -155,9 +155,6 @@ char* LabelQRcode::GetTsplCommand(){
 }
 
 
-
-
-
 class LabelText : public ILabelElement {
 private:
     std::string type;
@@ -381,6 +378,7 @@ char* LabelText::GetTsplCommand() {
     return  this->tsplCommand.data();
 }
 
+
 class LabelBox : public ILabelElement {
 private:
     std::string type;
@@ -443,6 +441,135 @@ char* LabelBox::GetTsplCommand(){
     );
     return this->tsplCommand.data();
 }
+
+
+//条形码类
+class LabelBarCode : public ILabelElement {
+private:
+    std::string type;
+    int x_start;
+    int y_start;
+    int height;
+    int humanReadable;
+    int rotation;
+    int narrow;
+    int wide;
+    BarCodeType codeType;
+    std::string text;
+    std::string tsplCommand;
+public:
+    LabelBarCode(Json::Value item);
+    char* GetType() override;
+    void Release() override;
+    char* GetTsplCommand() override;
+};
+LabelBarCode::LabelBarCode(Json::Value item){
+    type = "barcode";
+    if (item.isMember("x_start")) {
+        this->x_start = item["x_start"].asInt();
+    }
+    else {
+        this->x_start = 0;
+    }
+    if (item.isMember("y_start")) {
+        this->y_start = item["y_start"].asInt();
+    }
+    else {
+        this->y_start = 0;
+    }
+    
+    if (item.isMember("height")) {
+        this->height = item["height"].asInt();
+    }
+    else {
+        this->height = 10;
+    }
+
+    if (item.isMember("humanReadable")) {
+        this->humanReadable = item["humanReadable"].asInt();
+    }
+    else {
+        this->humanReadable = 0;
+    }
+
+    if (item.isMember("rotation")) {
+        this->rotation = item["rotation"].asInt();
+    }
+    else {
+        this->rotation = 0;
+    }
+
+    if (item.isMember("narrow")) {
+        this->narrow = item["narrow"].asInt();
+    }
+    else {
+        this->narrow = 1;
+	}
+
+    if (item.isMember("wide")) {
+        this->wide = item["wide"].asInt();
+    }
+    else {
+        this->wide = 2;
+	}
+
+    if (item.isMember("codeType")) {
+        this->codeType = (BarCodeType)item["codeType"].asInt();
+    }
+    else {
+        this->codeType = BarCodeType::CODE128;
+    }
+
+    if (item.isMember("text")) {
+        this->text = item["text"].asCString();
+    }
+    else {
+        this->text = "";
+	}
+}
+char* LabelBarCode::GetType(){
+    return this->type.data();
+}
+void LabelBarCode::Release(){
+    delete this;
+}
+char* LabelBarCode::GetTsplCommand(){
+    this->tsplCommand = "";
+	std::string sCodeType;
+    switch (this->codeType)
+    {
+    case BarCodeType::CODE39:
+        sCodeType = "39";
+        break;
+    case BarCodeType::CODE93:
+        sCodeType = "93";
+        break;
+    case BarCodeType::CODE128:
+        sCodeType = "128";
+        break;
+    case BarCodeType::EAN8:
+        sCodeType = "EAN8";
+        break;
+    case BarCodeType::EAN13:
+        sCodeType = "EAN13";
+        break;
+    case BarCodeType::UPCA:
+        sCodeType = "UPCA";
+        break;
+    case BarCodeType::UPCE:
+        sCodeType = "UPCE";
+        break;
+    case BarCodeType::MSI:
+        sCodeType = "MSI";
+        break;
+    }
+    this->tsplCommand = std::format(
+        "BARCODE {},{},\"{}\",{},{},{},{},{},\"{}\"\n",
+        this->x_start, this->y_start, sCodeType, this->height, this->humanReadable, this->rotation, this->narrow, this->wide,  this->text
+    );
+    return this->tsplCommand.data();
+}
+
 
 // 主Label类 
 class Label :public ILabel {
@@ -532,10 +659,12 @@ Label::Label(Json::Value label){
         }else  if (type.compare("text") == 0) {
             element = new LabelText(jsonElement);
             this->elements.push_back(element);
-        }
-        else  if (type.compare("box") == 0) {
+        }else  if (type.compare("box") == 0) {
              element = new LabelBox(jsonElement);
              this->elements.push_back(element);
+        }else  if (type.compare("barcode") == 0) {
+            element = new LabelBarCode(jsonElement);
+            this->elements.push_back(element);
         }
     }
 
@@ -635,3 +764,4 @@ ILabel* WINAPI DSLabel_Create(Json::Value root) {
     label = new Label(root);
     return label;
 }
+
