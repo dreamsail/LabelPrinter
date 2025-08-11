@@ -44,9 +44,6 @@
     <ClInclude Include="LabelPrintThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="resource1.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="云打印组件.exe.manifest" />

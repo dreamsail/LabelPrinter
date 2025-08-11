@@ -1,9 +1,10 @@
 #include "resource.h"
 #include "CustomWM.h"
 #include "MainWindow.h"
-#include<CommCtrl.h>
+#include <format>
+#include <CommCtrl.h>
 #pragma comment(lib, "comctl32.lib") 
-
+#pragma comment(lib, "Version.lib") 
 
 
 void initCommCtrl() {
@@ -13,22 +14,45 @@ void initCommCtrl() {
     InitCommonControlsEx(&icc);
 }
 
+std::wstring GetFileVersion() {
+    TCHAR szPath[MAX_PATH];
+    GetModuleFileName(NULL, szPath, MAX_PATH); // 获取当前可执行文件路径
+
+    DWORD dwHandle = 0;
+    DWORD dwSize = GetFileVersionInfoSize(szPath, &dwHandle);
+    if (dwSize == 0) return TEXT("0.0.0.0"); // 失败处理 
+
+    std::vector<TCHAR> buffer(dwSize);
+    if (!GetFileVersionInfo(szPath, dwHandle, dwSize, buffer.data())) {
+        return TEXT("0.0.0.0");
+    }
+
+    VS_FIXEDFILEINFO* pFileInfo = nullptr;
+    UINT uLen = 0;
+    if (!VerQueryValue(buffer.data(), TEXT("\\"), (LPVOID*)&pFileInfo, &uLen)) {
+        return TEXT("0.0.0.0");
+    }
+
+    // 解析版本号（四段式：主版本.次版本.修订号.构建号）
+    std::wstring szVersion = std::format(TEXT("{}.{}.{}.{}"),
+        HIWORD(pFileInfo->dwFileVersionMS), // 主版本 
+        LOWORD(pFileInfo->dwFileVersionMS), // 次版本
+        HIWORD(pFileInfo->dwFileVersionLS), // 修订号 
+        LOWORD(pFileInfo->dwFileVersionLS)  // 构建号
+    );
+    return szVersion;
+}
+
 //确保程序唯一运行
 HWND uniqueRun() {
     BOOL result= TRUE;
     DWORD disposition;
-    HKEY softwareKey=NULL;
-    HKEY dreamsailKey = NULL;
+
     HKEY printlKey = NULL;
-    if (RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("Software"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &softwareKey, &disposition)!= ERROR_SUCCESS) {
+    if (RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("Software/DreamSail/Print"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &printlKey, &disposition)!= ERROR_SUCCESS) {
         result = FALSE;
     }
-    if (result&&RegCreateKeyEx(softwareKey, TEXT("DreamSail"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &dreamsailKey, &disposition) != ERROR_SUCCESS) {
-        result = FALSE;
-    }
-    if (result && RegCreateKeyEx(dreamsailKey, TEXT("Print"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &printlKey, &disposition) != ERROR_SUCCESS) {
-        result = FALSE;
-    }
+
     HWND hwnd=NULL;
     DWORD size=sizeof(hwnd);
     if (result && RegGetValue(printlKey, NULL, TEXT("RunHwnd"), RRF_RT_REG_QWORD, NULL, &hwnd, &size) != ERROR_SUCCESS) {
@@ -37,8 +61,6 @@ HWND uniqueRun() {
     if (result && SendMessage(hwnd, WM_RUN_STATE, 0, 0)!= RUN_STATE__RUN){
         result = FALSE;
     }
-    RegCloseKey(softwareKey);
-    RegCloseKey(dreamsailKey);
     RegCloseKey(printlKey);
     if (result){
         return hwnd;
@@ -52,23 +74,14 @@ HWND uniqueRun() {
 BOOL registRun(HWND hwnd) {
     BOOL result = TRUE;
     DWORD disposition;
-    HKEY softwareKey = NULL;
-    HKEY dreamsailKey = NULL;
     HKEY printlKey = NULL;
-    if (RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("Software"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &softwareKey, &disposition) != ERROR_SUCCESS) {
-        result = FALSE;
-    }
-    if (result && RegCreateKeyEx(softwareKey, TEXT("DreamSail"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &dreamsailKey, &disposition) != ERROR_SUCCESS) {
-        result = FALSE;
-    }
-    if (result && RegCreateKeyEx(dreamsailKey, TEXT("Print"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &printlKey, &disposition) != ERROR_SUCCESS) {
+    if (RegCreateKeyEx(HKEY_CURRENT_USER, TEXT("Software/DreamSail/Print"), 0, 0, REG_OPTION_VOLATILE, KEY_ALL_ACCESS, NULL, &printlKey, &disposition) != ERROR_SUCCESS) {
         result = FALSE;
     }
     if (result && RegSetValueEx(printlKey, TEXT("RunHwnd"),NULL, REG_QWORD, (BYTE*)&hwnd, sizeof(hwnd)) != ERROR_SUCCESS) {
         result = FALSE;
     } 
-    RegCloseKey(softwareKey);
-    RegCloseKey(dreamsailKey);
+
     RegCloseKey(printlKey);
     return result;
 }
@@ -88,9 +101,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     DSUI_Init(hInstance);
     initCommCtrl();
 
+    auto version= GetFileVersion();
+	auto windowTitle = std::format(TEXT("标签云打印组件 V{}"), version);
+
     MainWindow* mainWindow = new MainWindow();
     mainWindow->Register(TEXT("MainWindow"), DSUI_MainWindowProc);
-    mainWindow->Create(NULL, TEXT("MainWindow"), TEXT("标签云打印组件 V2.1.0.2"));
+    mainWindow->Create(NULL, TEXT("MainWindow"), windowTitle.data());
     mainWindow->Resize(700, 400);
     mainWindow->SetHIcon(LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1)));
     mainWindow->Show(nCmdShow);

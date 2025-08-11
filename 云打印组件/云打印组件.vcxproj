@@ -183,7 +183,6 @@
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="CustomWM.h" />
-    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="云打印组件.exe.manifest" />
